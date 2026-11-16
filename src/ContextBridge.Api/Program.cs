@@ -1,4 +1,12 @@
+using ContextBridge.Application;
+using ContextBridge.Infrastructure;
+using ContextBridge.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure();
 
 builder.Services
     .AddHealthChecks()
@@ -12,6 +20,11 @@ builder.Services
     .WithToolsFromAssembly();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<ContextBridgeDbContext>().Database.MigrateAsync();
+}
 
 app.MapHealthChecks("/health");
 

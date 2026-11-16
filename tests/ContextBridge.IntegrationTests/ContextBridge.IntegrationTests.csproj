@@ -23,6 +23,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\ContextBridge.Api\ContextBridge.Api.csproj" />
     <ProjectReference Include="..\..\src\ContextBridge.Infrastructure\ContextBridge.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\ContextBridge.Application\ContextBridge.Application.csproj" />
+    <ProjectReference Include="..\..\src\ContextBridge.Domain\ContextBridge.Domain.csproj" />
   </ItemGroup>
 
 </Project>
