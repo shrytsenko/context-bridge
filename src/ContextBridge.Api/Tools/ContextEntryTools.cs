@@ -32,6 +32,7 @@ public sealed class ContextEntryTools
         [Description("Optional source conversation identifier or link.")] string? conversationReference = null,
         [Description("Existing entry id to update; omit to create a new entry.")] Guid? entryId = null,
         [Description("Required when updating: the entry's current version, for optimistic concurrency.")] int? expectedVersion = null,
+        [Description("Optional key to make a create request safe to retry without creating a duplicate entry. Ignored when updating.")] string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -52,7 +53,7 @@ public sealed class ContextEntryTools
             }
 
             var projectEntity = await _projects.GetBySlugAsync(project, cancellationToken);
-            var created = await _contextEntries.CreateAsync(projectEntity.Id, entryType, title, content, source, cancellationToken);
+            var created = await _contextEntries.CreateAsync(projectEntity.Id, entryType, title, content, source, idempotencyKey, cancellationToken);
             return ToolResults.Success(created.ToDto());
         }
         catch (DomainException ex)

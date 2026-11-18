@@ -196,6 +196,41 @@ namespace ContextBridge.Infrastructure.Persistence.Migrations
                     b.ToTable("handoffs", (string)null);
                 });
 
+            modelBuilder.Entity("ContextBridge.Domain.Entities.IdempotencyRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Operation", "Key")
+                        .IsUnique();
+
+                    b.ToTable("idempotency_keys", (string)null);
+                });
+
             modelBuilder.Entity("ContextBridge.Domain.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")

@@ -30,6 +30,7 @@ public sealed class HandoffTools
         [Description("List of acceptance criteria strings.")] string[] acceptanceCriteria,
         [Description("Optional originating agent: ChatGpt, ClaudeCode, User, or ApiClient.")] string? sourceAgent = null,
         [Description("Optional target agent: ChatGpt, ClaudeCode, User, or ApiClient.")] string? targetAgent = null,
+        [Description("Optional key to make this request safe to retry without creating a duplicate handoff.")] string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -40,7 +41,7 @@ public sealed class HandoffTools
 
             var projectEntity = await _projects.GetBySlugAsync(project, cancellationToken);
             var created = await _handoffs.CreateAsync(
-                projectEntity.Id, title, objective, acceptanceCriteriaJson, sourceAgentValue, targetAgentValue, cancellationToken);
+                projectEntity.Id, title, objective, acceptanceCriteriaJson, sourceAgentValue, targetAgentValue, idempotencyKey, cancellationToken);
             return ToolResults.Success(created.ToDto());
         }
         catch (DomainException ex)

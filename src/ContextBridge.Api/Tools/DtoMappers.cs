@@ -32,6 +32,13 @@ internal static class DtoMappers
         decision.CreatedAt,
         decision.UpdatedAt);
 
+    public static ContextEntryDto ToTruncatedDto(this ContextEntry entry, int maxContentLength) => entry.ToDto() with
+    {
+        Content = entry.Content.Length > maxContentLength
+            ? entry.Content[..maxContentLength] + "…"
+            : entry.Content
+    };
+
     public static HandoffDto ToDto(this Handoff handoff) => new(
         handoff.Id,
         handoff.ProjectId,

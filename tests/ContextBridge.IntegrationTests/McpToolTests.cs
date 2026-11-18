@@ -161,6 +161,61 @@ public sealed class McpToolTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Save_context_with_same_idempotency_key_does_not_create_a_duplicate()
+    {
+        await using var mcp = await CreateMcpClientAsync();
+
+        var projectSlug = $"kartimo-{Guid.NewGuid():N}";
+        await SeedProjectAsync(projectSlug);
+        var idempotencyKey = Guid.NewGuid().ToString();
+
+        var args = new Dictionary<string, object?>
+        {
+            ["project"] = projectSlug,
+            ["type"] = "Fact",
+            ["title"] = "Title",
+            ["content"] = "Content",
+            ["actor"] = "User",
+            ["idempotencyKey"] = idempotencyKey
+        };
+
+        var first = await CallSuccessAsync(mcp, "save_context", args);
+        var second = await CallSuccessAsync(mcp, "save_context", args);
+
+        Assert.Equal(first.GetProperty("id").GetGuid(), second.GetProperty("id").GetGuid());
+
+        var snapshot = await CallSuccessAsync(mcp, "get_project_context", new Dictionary<string, object?>
+        {
+            ["project"] = projectSlug
+        });
+        Assert.Equal(1, snapshot.GetProperty("context").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Create_handoff_with_same_idempotency_key_does_not_create_a_duplicate()
+    {
+        await using var mcp = await CreateMcpClientAsync();
+
+        var projectSlug = $"kartimo-{Guid.NewGuid():N}";
+        await SeedProjectAsync(projectSlug);
+        var idempotencyKey = Guid.NewGuid().ToString();
+
+        var args = new Dictionary<string, object?>
+        {
+            ["project"] = projectSlug,
+            ["title"] = "Implement championship domain",
+            ["objective"] = "Implement the approved domain model",
+            ["acceptanceCriteria"] = new[] { "Unit tests" },
+            ["idempotencyKey"] = idempotencyKey
+        };
+
+        var first = await CallSuccessAsync(mcp, "create_handoff", args);
+        var second = await CallSuccessAsync(mcp, "create_handoff", args);
+
+        Assert.Equal(first.GetProperty("id").GetGuid(), second.GetProperty("id").GetGuid());
+    }
+
+    [Fact]
     public async Task Save_decision_with_invalid_status_returns_validation_error()
     {
         await using var mcp = await CreateMcpClientAsync();

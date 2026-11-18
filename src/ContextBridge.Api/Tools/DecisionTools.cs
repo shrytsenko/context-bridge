@@ -32,6 +32,7 @@ public sealed class DecisionTools
         [Description("Optional source conversation identifier or link.")] string? conversationReference = null,
         [Description("Existing decision id to update; omit to create a new decision.")] Guid? decisionId = null,
         [Description("Required when updating: the decision's current version, for optimistic concurrency.")] int? expectedVersion = null,
+        [Description("Optional key to make a create request safe to retry without creating a duplicate decision. Ignored when updating.")] string? idempotencyKey = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -52,7 +53,7 @@ public sealed class DecisionTools
             }
 
             var projectEntity = await _projects.GetBySlugAsync(project, cancellationToken);
-            var created = await _decisions.CreateAsync(projectEntity.Id, title, rationale, statusValue, source, cancellationToken);
+            var created = await _decisions.CreateAsync(projectEntity.Id, title, rationale, statusValue, source, idempotencyKey, cancellationToken);
             return ToolResults.Success(created.ToDto());
         }
         catch (DomainException ex)

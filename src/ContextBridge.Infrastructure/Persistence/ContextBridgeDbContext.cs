@@ -15,6 +15,7 @@ public sealed class ContextBridgeDbContext : DbContext, IContextBridgeDbContext
     public DbSet<Decision> Decisions => Set<Decision>();
     public DbSet<Handoff> Handoffs => Set<Handoff>();
     public DbSet<ContextRevision> ContextRevisions => Set<ContextRevision>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

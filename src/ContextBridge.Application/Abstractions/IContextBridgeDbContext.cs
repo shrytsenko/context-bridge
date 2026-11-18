@@ -10,6 +10,7 @@ public interface IContextBridgeDbContext
     DbSet<Decision> Decisions { get; }
     DbSet<Handoff> Handoffs { get; }
     DbSet<ContextRevision> ContextRevisions { get; }
+    DbSet<IdempotencyRecord> IdempotencyRecords { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

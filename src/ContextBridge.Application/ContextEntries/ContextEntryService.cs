@@ -1,4 +1,5 @@
 using ContextBridge.Application.Abstractions;
+using ContextBridge.Application.Idempotency;
 using ContextBridge.Application.Revisions;
 using ContextBridge.Domain.Entities;
 using ContextBridge.Domain.Enums;
@@ -17,19 +18,29 @@ public sealed class ContextEntryService
         _db = db;
     }
 
+    private const string CreateOperation = "save_context.create";
+
     public async Task<ContextEntry> CreateAsync(
         Guid projectId,
         ContextEntryType type,
         string title,
         string content,
         Source source,
+        string? idempotencyKey = null,
         CancellationToken ct = default)
     {
+        var existingId = await IdempotencyGuard.TryGetExistingEntityIdAsync(_db, CreateOperation, idempotencyKey, ct);
+        if (existingId is { } id)
+        {
+            return await GetAsync(id, ct);
+        }
+
         await EnsureProjectExistsAsync(projectId, ct);
 
         var entry = ContextEntry.Create(projectId, type, title, content, source);
         await _db.ContextEntries.AddAsync(entry, ct);
         await RecordRevisionAsync(entry, ct);
+        await IdempotencyGuard.RecordAsync(_db, CreateOperation, idempotencyKey, nameof(ContextEntry), entry.Id, ct);
         await _db.SaveChangesAsync(ct);
         return entry;
     }
@@ -55,20 +66,18 @@ public sealed class ContextEntryService
         int limit,
         CancellationToken ct = default)
     {
-        var candidates = _db.ContextEntries.Where(e => e.ProjectId == projectId);
+        var typeNames = types is { Count: > 0 } ? types.Select(t => t.ToString()).ToArray() : null;
 
-        if (types is { Count: > 0 })
-        {
-            candidates = candidates.Where(e => types.Contains(e.Type));
-        }
-
-        var pattern = query.ToLowerInvariant();
-        candidates = candidates.Where(e =>
-            e.Title.ToLower().Contains(pattern) || e.Content.ToLower().Contains(pattern));
-
-        return await candidates
-            .OrderByDescending(e => e.UpdatedAt)
-            .Take(limit)
+        return await _db.ContextEntries
+            .FromSqlInterpolated($"""
+                SELECT * FROM context_entries
+                WHERE "ProjectId" = {projectId}
+                  AND search_vector @@ plainto_tsquery('simple', {query})
+                  AND ({typeNames}::text[] IS NULL OR "Type" = ANY({typeNames}::text[]))
+                ORDER BY ts_rank(search_vector, plainto_tsquery('simple', {query})) DESC
+                LIMIT {limit}
+                """)
+            .AsNoTracking()
             .ToListAsync(ct);
     }
 

@@ -9,9 +9,9 @@ in one AI assistant (e.g. ChatGPT) and continue implementing it in another
 
 ## Status
 
-🚧 Early development. M1 (solution bootstrap), M2 (domain & persistence), and
-M3 (MCP integration) are complete. See [docs/mvp-scope.md](docs/mvp-scope.md)
-for the full milestone plan.
+🚧 Early development. M1-M4 (solution bootstrap, domain & persistence, MCP
+integration, full-text search & handoff hardening) are complete. See
+[docs/mvp-scope.md](docs/mvp-scope.md) for the full milestone plan.
 
 ## Architecture
 
@@ -50,10 +50,10 @@ real key.
 | Tool | Mode | Purpose |
 |---|---|---|
 | `get_project_context` | Read | Compact snapshot: project metadata, recent context entries, decisions, handoffs. |
-| `search_context` | Read | Search a project's context entries by text, optionally filtered by type. |
-| `save_context` | Write | Create or update a context entry (optimistic concurrency via `expectedVersion`). |
-| `save_decision` | Write | Create or update a decision with an explicit status — never silently accepted. |
-| `create_handoff` | Write | Create an actionable task for another agent. |
+| `search_context` | Read | Full-text search (PostgreSQL `tsvector`/`ts_rank`) over a project's context entries, optionally filtered by type. |
+| `save_context` | Write | Create (idempotent via `idempotencyKey`) or update (`expectedVersion`) a context entry. |
+| `save_decision` | Write | Create (idempotent via `idempotencyKey`) or update (`expectedVersion`) a decision — status is always explicit, never silently accepted. |
+| `create_handoff` | Write | Create an actionable task for another agent (idempotent via `idempotencyKey`). |
 | `complete_handoff` | Write | Record a handoff's outcome (`Completed`/`Cancelled`). |
 
 Errors use stable codes: `NOT_FOUND`, `VERSION_CONFLICT`, `VALIDATION_ERROR`.

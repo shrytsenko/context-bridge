@@ -14,6 +14,7 @@ namespace ContextBridge.Api.Tools;
 public sealed class ProjectContextTools
 {
     private const int MaxItemsPerCategory = 20;
+    private const int MaxContentPreviewLength = 500;
     private const int DefaultSearchLimit = 20;
     private const int MaxSearchLimit = 100;
 
@@ -51,7 +52,8 @@ public sealed class ProjectContextTools
 
             var contextDtos = includeSet.Contains("context")
                 ? (await _contextEntries.ListByProjectAsync(projectEntity.Id, cancellationToken))
-                    .OrderByDescending(e => e.UpdatedAt).Take(MaxItemsPerCategory).Select(e => e.ToDto()).ToList()
+                    .OrderByDescending(e => e.UpdatedAt).Take(MaxItemsPerCategory)
+                    .Select(e => e.ToTruncatedDto(MaxContentPreviewLength)).ToList()
                 : null;
 
             var decisionDtos = includeSet.Contains("decisions")

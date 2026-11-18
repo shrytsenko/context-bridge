@@ -1,4 +1,5 @@
 using ContextBridge.Application.Abstractions;
+using ContextBridge.Application.Idempotency;
 using ContextBridge.Application.Revisions;
 using ContextBridge.Domain.Entities;
 using ContextBridge.Domain.Enums;
@@ -17,19 +18,29 @@ public sealed class DecisionService
         _db = db;
     }
 
+    private const string CreateOperation = "save_decision.create";
+
     public async Task<Decision> CreateAsync(
         Guid projectId,
         string title,
         string rationale,
         DecisionStatus status,
         Source source,
+        string? idempotencyKey = null,
         CancellationToken ct = default)
     {
+        var existingId = await IdempotencyGuard.TryGetExistingEntityIdAsync(_db, CreateOperation, idempotencyKey, ct);
+        if (existingId is { } id)
+        {
+            return await GetAsync(id, ct);
+        }
+
         await EnsureProjectExistsAsync(projectId, ct);
 
         var decision = Decision.Create(projectId, title, rationale, status, source);
         await _db.Decisions.AddAsync(decision, ct);
         await RecordRevisionAsync(decision, ct);
+        await IdempotencyGuard.RecordAsync(_db, CreateOperation, idempotencyKey, nameof(Decision), decision.Id, ct);
         await _db.SaveChangesAsync(ct);
         return decision;
     }

@@ -1,4 +1,5 @@
 using ContextBridge.Application.Abstractions;
+using ContextBridge.Application.Idempotency;
 using ContextBridge.Domain.Entities;
 using ContextBridge.Domain.Enums;
 using ContextBridge.Domain.Exceptions;
@@ -15,6 +16,8 @@ public sealed class HandoffService
         _db = db;
     }
 
+    private const string CreateOperation = "create_handoff.create";
+
     public async Task<Handoff> CreateAsync(
         Guid projectId,
         string title,
@@ -22,8 +25,15 @@ public sealed class HandoffService
         string acceptanceCriteriaJson,
         Actor? sourceAgent,
         Actor? targetAgent,
+        string? idempotencyKey = null,
         CancellationToken ct = default)
     {
+        var existingId = await IdempotencyGuard.TryGetExistingEntityIdAsync(_db, CreateOperation, idempotencyKey, ct);
+        if (existingId is { } id)
+        {
+            return await GetAsync(id, ct);
+        }
+
         var exists = await _db.Projects.AnyAsync(p => p.Id == projectId, ct);
         if (!exists)
         {
@@ -32,6 +42,7 @@ public sealed class HandoffService
 
         var handoff = Handoff.Create(projectId, title, objective, acceptanceCriteriaJson, sourceAgent, targetAgent);
         await _db.Handoffs.AddAsync(handoff, ct);
+        await IdempotencyGuard.RecordAsync(_db, CreateOperation, idempotencyKey, nameof(Handoff), handoff.Id, ct);
         await _db.SaveChangesAsync(ct);
         return handoff;
     }
