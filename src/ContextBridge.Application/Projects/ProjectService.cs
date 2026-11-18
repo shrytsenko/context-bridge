@@ -27,4 +27,14 @@ public sealed class ProjectService
         var project = await _db.Projects.SingleOrDefaultAsync(p => p.Slug == slug, ct);
         return project ?? throw new EntityNotFoundException(nameof(Project), slug);
     }
+
+    /// <summary>
+    /// For write tools only: no MCP tool exists to bootstrap a project, so the first write
+    /// for an unknown slug creates it (named after the slug) rather than failing.
+    /// </summary>
+    public async Task<Project> GetOrCreateBySlugAsync(string slug, CancellationToken ct = default)
+    {
+        var project = await _db.Projects.SingleOrDefaultAsync(p => p.Slug == slug, ct);
+        return project ?? await CreateAsync(slug, slug, description: null, ct);
+    }
 }

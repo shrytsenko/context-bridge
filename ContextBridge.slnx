@@ -9,4 +9,7 @@
     <Project Path="tests/ContextBridge.IntegrationTests/ContextBridge.IntegrationTests.csproj" />
     <Project Path="tests/ContextBridge.UnitTests/ContextBridge.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/ContextBridge.Import/ContextBridge.Import.csproj" />
+  </Folder>
 </Solution>

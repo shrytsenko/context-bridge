@@ -1,0 +1,67 @@
+{
+  "project": {
+    "slug": "kartimo",
+    "name": "Kartimo",
+    "description": "International karting discovery platform."
+  },
+  "contextEntries": [
+    {
+      "type": "Fact",
+      "title": "Target market",
+      "content": "International discovery platform, initially Spain (Catalonia + Valencia), Spanish and English. MVP covers rental/amateur and competitive karting, tracks, schools, teams, training, camps, and competitions.",
+      "actor": "ChatGpt",
+      "conversationReference": "chatgpt-kartimo-planning-2026-11"
+    },
+    {
+      "type": "Architecture",
+      "title": "Backend architecture",
+      "content": "ASP.NET Core modular monolith, PostgreSQL with PostGIS for geospatial queries (tracks, schools, event locations).",
+      "actor": "ChatGpt",
+      "conversationReference": "chatgpt-kartimo-planning-2026-11"
+    },
+    {
+      "type": "Architecture",
+      "title": "Frontend architecture",
+      "content": "Next.js + TypeScript, CSS Modules, Radix UI where needed.",
+      "actor": "ChatGpt",
+      "conversationReference": "chatgpt-kartimo-planning-2026-11"
+    },
+    {
+      "type": "DiscussionSummary",
+      "title": "Future phases",
+      "content": "Phase 2: community features, driver profiles, team finder. Phase 3: results, history, and rankings.",
+      "actor": "ChatGpt",
+      "conversationReference": "chatgpt-kartimo-planning-2026-11"
+    }
+  ],
+  "decisions": [
+    {
+      "title": "Use PostgreSQL with PostGIS",
+      "rationale": "Tracks, schools, and events all need geospatial queries (nearest track, radius search); PostGIS is the standard extension for this on PostgreSQL.",
+      "status": "Accepted",
+      "actor": "ChatGpt",
+      "conversationReference": "chatgpt-kartimo-planning-2026-11"
+    },
+    {
+      "title": "Use Next.js for the frontend",
+      "rationale": "Server-rendered pages for SEO (karting discovery is a search-driven use case), TypeScript for type safety across the team.",
+      "status": "Accepted",
+      "actor": "ChatGpt",
+      "conversationReference": "chatgpt-kartimo-planning-2026-11"
+    }
+  ],
+  "handoffs": [
+    {
+      "title": "Implement championship domain",
+      "objective": "Implement the approved domain model for Kartimo's championship tracking.",
+      "acceptanceCriteria": [
+        "Championship and Season entities",
+        "RaceEvent entity",
+        "EF Core mappings",
+        "Unit tests"
+      ],
+      "sourceAgent": "ChatGpt",
+      "targetAgent": "ClaudeCode"
+    }
+  ]
+}

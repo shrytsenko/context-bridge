@@ -52,7 +52,7 @@ public sealed class ContextEntryTools
                 return ToolResults.Success(updated.ToDto());
             }
 
-            var projectEntity = await _projects.GetBySlugAsync(project, cancellationToken);
+            var projectEntity = await _projects.GetOrCreateBySlugAsync(project, cancellationToken);
             var created = await _contextEntries.CreateAsync(projectEntity.Id, entryType, title, content, source, idempotencyKey, cancellationToken);
             return ToolResults.Success(created.ToDto());
         }

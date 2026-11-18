@@ -39,7 +39,7 @@ public sealed class HandoffTools
             var targetAgentValue = targetAgent is null ? (Actor?)null : EnumParsing.Parse<Actor>(targetAgent, "targetAgent");
             var acceptanceCriteriaJson = JsonSerializer.Serialize(acceptanceCriteria ?? []);
 
-            var projectEntity = await _projects.GetBySlugAsync(project, cancellationToken);
+            var projectEntity = await _projects.GetOrCreateBySlugAsync(project, cancellationToken);
             var created = await _handoffs.CreateAsync(
                 projectEntity.Id, title, objective, acceptanceCriteriaJson, sourceAgentValue, targetAgentValue, idempotencyKey, cancellationToken);
             return ToolResults.Success(created.ToDto());

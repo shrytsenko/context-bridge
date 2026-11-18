@@ -10,6 +10,30 @@ namespace ContextBridge.IntegrationTests;
 public sealed class McpToolTests : IntegrationTestBase
 {
     [Fact]
+    public async Task Save_context_auto_creates_the_project_when_the_slug_is_new()
+    {
+        await using var mcp = await CreateMcpClientAsync();
+
+        var projectSlug = $"kartimo-{Guid.NewGuid():N}";
+
+        var created = await CallSuccessAsync(mcp, "save_context", new Dictionary<string, object?>
+        {
+            ["project"] = projectSlug,
+            ["type"] = "Fact",
+            ["title"] = "Title",
+            ["content"] = "Content",
+            ["actor"] = "ChatGpt"
+        });
+        Assert.Equal(1, created.GetProperty("version").GetInt32());
+
+        var snapshot = await CallSuccessAsync(mcp, "get_project_context", new Dictionary<string, object?>
+        {
+            ["project"] = projectSlug
+        });
+        Assert.Equal(projectSlug, snapshot.GetProperty("project").GetProperty("slug").GetString());
+    }
+
+    [Fact]
     public async Task Save_context_then_get_project_context_and_search_context_round_trip()
     {
         await using var mcp = await CreateMcpClientAsync();
