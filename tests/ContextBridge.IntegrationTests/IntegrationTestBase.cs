@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using ModelContextProtocol.Client;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -7,6 +8,8 @@ namespace ContextBridge.IntegrationTests;
 
 public abstract class IntegrationTestBase : IAsyncLifetime
 {
+    protected const string ApiKey = "test-api-key";
+
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("contextbridge")
         .WithUsername("contextbridge")
@@ -25,7 +28,8 @@ public abstract class IntegrationTestBase : IAsyncLifetime
             {
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:ContextBridge"] = _postgres.GetConnectionString()
+                    ["ConnectionStrings:ContextBridge"] = _postgres.GetConnectionString(),
+                    ["Authentication:ApiKey"] = ApiKey
                 });
             });
         });
@@ -38,5 +42,22 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     {
         Factory.Dispose();
         await _postgres.DisposeAsync();
+    }
+
+    protected async Task<McpClient> CreateMcpClientAsync(CancellationToken cancellationToken = default)
+    {
+        var httpClient = Factory.CreateClient();
+        var transport = new HttpClientTransport(
+            new HttpClientTransportOptions
+            {
+                Endpoint = new Uri(httpClient.BaseAddress!, "/mcp"),
+                TransportMode = HttpTransportMode.StreamableHttp,
+                AdditionalHeaders = new Dictionary<string, string> { ["X-Api-Key"] = ApiKey }
+            },
+            httpClient,
+            null,
+            true);
+
+        return await McpClient.CreateAsync(transport, cancellationToken: cancellationToken);
     }
 }

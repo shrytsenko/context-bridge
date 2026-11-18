@@ -1,3 +1,4 @@
+using ContextBridge.Api.Authentication;
 using ContextBridge.Application;
 using ContextBridge.Infrastructure;
 using ContextBridge.Infrastructure.Persistence;
@@ -27,6 +28,10 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapHealthChecks("/health");
+
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/mcp"),
+    branch => branch.UseMiddleware<ApiKeyMiddleware>());
 
 app.MapMcp("/mcp");
 

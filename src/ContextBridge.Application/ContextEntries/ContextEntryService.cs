@@ -48,6 +48,30 @@ public sealed class ContextEntryService
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<ContextEntry>> SearchAsync(
+        Guid projectId,
+        string query,
+        IReadOnlyCollection<ContextEntryType>? types,
+        int limit,
+        CancellationToken ct = default)
+    {
+        var candidates = _db.ContextEntries.Where(e => e.ProjectId == projectId);
+
+        if (types is { Count: > 0 })
+        {
+            candidates = candidates.Where(e => types.Contains(e.Type));
+        }
+
+        var pattern = query.ToLowerInvariant();
+        candidates = candidates.Where(e =>
+            e.Title.ToLower().Contains(pattern) || e.Content.ToLower().Contains(pattern));
+
+        return await candidates
+            .OrderByDescending(e => e.UpdatedAt)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
+
     public async Task<ContextEntry> UpdateAsync(
         Guid id,
         string title,

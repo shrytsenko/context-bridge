@@ -1,5 +1,6 @@
 using ContextBridge.Application.ContextEntries;
 using ContextBridge.Application.Decisions;
+using ContextBridge.Application.Handoffs;
 using ContextBridge.Application.Projects;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<ProjectService>();
         services.AddScoped<ContextEntryService>();
         services.AddScoped<DecisionService>();
+        services.AddScoped<HandoffService>();
         return services;
     }
 }

@@ -56,4 +56,32 @@ public sealed class Handoff
             UpdatedAt = now
         };
     }
+
+    public void Complete(HandoffStatus status, string result, int expectedVersion)
+    {
+        if (expectedVersion != Version)
+        {
+            throw new ConcurrencyConflictException(nameof(Handoff), Id, expectedVersion, Version);
+        }
+
+        if (Status is HandoffStatus.Completed or HandoffStatus.Cancelled)
+        {
+            throw new DomainValidationException($"Handoff '{Id}' is already {Status} and cannot be completed again.");
+        }
+
+        if (status is not (HandoffStatus.Completed or HandoffStatus.Cancelled))
+        {
+            throw new DomainValidationException("Completing a handoff requires status Completed or Cancelled.");
+        }
+
+        if (string.IsNullOrWhiteSpace(result))
+        {
+            throw new DomainValidationException("Handoff result is required when completing.");
+        }
+
+        Status = status;
+        Result = result;
+        Version++;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 }

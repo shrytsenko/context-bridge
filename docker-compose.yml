@@ -21,6 +21,7 @@ services:
       - "8081:8080"
     environment:
       ConnectionStrings__ContextBridge: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-contextbridge};Username=${POSTGRES_USER:-contextbridge};Password=${POSTGRES_PASSWORD:-contextbridge}"
+      Authentication__ApiKey: ${CONTEXTBRIDGE_API_KEY:-local-dev-key}
     depends_on:
       postgres:
         condition: service_healthy
